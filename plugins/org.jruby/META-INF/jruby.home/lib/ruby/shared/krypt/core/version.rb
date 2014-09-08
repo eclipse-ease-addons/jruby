@@ -1,8 +1,5 @@
 module Krypt
   module Core
-    class Version
-      VERSION = "0.1.0.dev"
-    end
+    VERSION = '0.0.2'
   end
 end
-

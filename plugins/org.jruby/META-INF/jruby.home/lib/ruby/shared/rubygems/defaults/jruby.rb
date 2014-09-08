@@ -11,14 +11,28 @@ module Gem
     alias_method :original_ruby, :ruby
     def ruby
       ruby_path = original_ruby
-      if jarred_path?(ruby_path)
-        ruby_path = "java -jar #{ruby_path.sub(/^file:/,"").sub(/!.*/,"")}"
-      end
+      ruby_path = "java -jar #{jar_path(ruby_path)}" if jarred_path?(ruby_path)
       ruby_path
     end
 
     def jarred_path?(p)
       p =~ /^file:/
+    end
+    
+    # A jar path looks like this on non-Windows platforms:
+    #   file:/path/to/file.jar!/path/within/jar/to/file.txt
+    # and like this on Windows:
+    #   file:/C:/path/to/file.jar!/path/within/jar/to/file.txt
+    #
+    # This method returns:
+    #   /path/to/file.jar
+    # or
+    #   C:/path/to/file.jar
+    # as appropriate.
+    def jar_path(p)
+      path = p.sub(/^file:/, "").sub(/!.*/, "")
+      path = path.sub(/^\//, "") if win_platform? && path =~ /^\/[A-Za-z]:/
+      path
     end
   end
 
@@ -74,6 +88,14 @@ class Gem::Specification
       }.compact + spec_directories_from_classpath
     end
 
+    def add_dir dir
+      new_dirs = [ dir ] + (@@dirs||[]).collect { |d| d.sub /.specifications/, '' }
+      self.reset
+
+      # ugh
+      @@dirs = new_dirs.map { |dir| File.join dir, "specifications" }
+    end
+
     # Replace existing dirs=
     def dirs= dirs
       self.reset
@@ -102,5 +124,10 @@ end
 # env-shebang and possibly other options.
 begin
   require 'rubygems/defaults/jruby_native'
+rescue LoadError
+end
+
+begin
+  require 'jar_install_post_install_hook'
 rescue LoadError
 end

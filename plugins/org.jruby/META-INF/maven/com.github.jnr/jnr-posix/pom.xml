@@ -10,7 +10,7 @@
   <groupId>com.github.jnr</groupId>
   <artifactId>jnr-posix</artifactId>
   <packaging>jar</packaging>
-  <version>2.5.3-SNAPSHOT</version>
+  <version>3.0.6</version>
   <name>jnr-posix</name>
   <description>
     Common cross-project/cross-platform POSIX APIs
@@ -59,7 +59,6 @@
   </developers>
 
   <properties>
-    <maven.test.failure.ignore>true</maven.test.failure.ignore>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.5</maven.compiler.source>
     <maven.compiler.target>1.5</maven.compiler.target>
@@ -75,12 +74,12 @@
     <dependency>
       <groupId>com.github.jnr</groupId>
       <artifactId>jnr-ffi</artifactId>
-      <version>1.0.4</version>
+      <version>1.0.10</version>
     </dependency>
     <dependency>
       <groupId>com.github.jnr</groupId>
       <artifactId>jnr-constants</artifactId>
-      <version>0.8.4</version>
+      <version>0.8.5</version>
     </dependency>
   </dependencies>
 
@@ -100,6 +99,16 @@
           <archive>
             <manifestFile>MANIFEST.MF</manifestFile>
           </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.16</version>
+        <configuration>
+          <forkCount>2</forkCount>
+          <reuseForks>false</reuseForks>
+          <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
         </configuration>
       </plugin>
     </plugins>

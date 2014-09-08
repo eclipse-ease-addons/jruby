@@ -58,38 +58,37 @@ public class JRubyScriptEngine extends AbstractScriptEngine {
 	}
 
 	@Override
-	public void setVariable(final String name, final Object content) {
-		fEngine.put(name.startsWith("$") ? name : "$" + name, content);
-	}
-
-	@Override
-	public Object getVariable(final String name) {
-		return fEngine.get(name.startsWith("$") ? name : "$" + name);
-	}
-
-	@Override
-	public boolean hasVariable(final String name) {
-		throw new RuntimeException("Oeration not supported");
-		// return mEngine.getVarMap().containsKey(name);
-	}
-
-	@Override
 	public String getSaveVariableName(final String name) {
-		throw new RuntimeException("Oeration not supported");
-	}
-
-	@Override
-	public Object removeVariable(final String name) {
-		throw new RuntimeException("Oeration not supported");
-	}
-
-	@Override
-	public Map<String, Object> getVariables() {
-		throw new RuntimeException("Oeration not supported");
+		return JRubyModuleWrapper.getSaveName(name);
 	}
 
 	@Override
 	public void registerJar(final URL url) {
+		throw new RuntimeException("Oeration not supported");
+	}
+
+	@Override
+	protected Object internalGetVariable(final String name) {
+		return fEngine.get(name);
+	}
+
+	@Override
+	protected Map<String, Object> internalGetVariables() {
+		return fEngine.getVarMap();
+	}
+
+	@Override
+	protected boolean internalHasVariable(final String name) {
+		return internalGetVariables().containsKey(name);
+	}
+
+	@Override
+	protected void internalSetVariable(final String name, final Object content) {
+		fEngine.put(name, content);
+	}
+
+	@Override
+	protected Object internalRemoveVariable(final String name) {
 		throw new RuntimeException("Oeration not supported");
 	}
 }

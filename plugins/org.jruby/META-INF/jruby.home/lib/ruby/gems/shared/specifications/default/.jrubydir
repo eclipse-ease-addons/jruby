@@ -1,0 +1,11 @@
+..
+.
+ffi-1.9.3-java.gemspec
+jar-dependencies-0.0.9.gemspec
+jruby-openssl-0.9.5-java.gemspec
+json-1.8.0-java.gemspec
+krypt-0.0.2.gemspec
+krypt-core-0.0.2-universal-java.gemspec
+krypt-provider-jdk-0.0.2.gemspec
+rake-10.1.0.gemspec
+rdoc-4.0.1.gemspec

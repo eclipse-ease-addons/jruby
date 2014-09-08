@@ -12,13 +12,24 @@ package org.eclipse.ease.lang.ruby.jruby;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
-import org.eclipse.escriptmonkey.scripting.modules.EnvironmentModule;
-import org.eclipse.escriptmonkey.scripting.modules.IModuleWrapper;
+import org.eclipse.ease.Activator;
+import org.eclipse.ease.Logger;
+import org.eclipse.ease.modules.AbstractModuleWrapper;
+import org.eclipse.ease.modules.IEnvironment;
+import org.eclipse.ease.modules.IScriptFunctionModifier;
 
-public class JRubyModuleWrapper implements IModuleWrapper {
+public class JRubyModuleWrapper extends AbstractModuleWrapper {
+
+	public static List<String> RESERVED_KEYWORDS = new ArrayList<String>();
+
+	static {
+		// TODO set keywords
+		// RESERVED_KEYWORDS.add("abstract");
+	}
 
 	@Override
 	public String getSaveVariableName(final String variableName) {
@@ -26,53 +37,47 @@ public class JRubyModuleWrapper implements IModuleWrapper {
 	}
 
 	@Override
-	public String createFunctionWrapper(final String moduleVariable, final Method method, final Set<String> functionNames, final String resultName, final String preExecutionCode, final String postExecutionCode) {
+	public String createFunctionWrapper(final IEnvironment environment, final String moduleVariable, final Method method) {
 
 		StringBuilder rubyScriptCode = new StringBuilder();
 
-		// use reflection to access methods
+		// parse parameters
+		List<Parameter> parameters = parseParameters(method);
 
-		// create body
-		StringBuffer body = new StringBuffer();
+		// build parameter string
+		StringBuilder parameterList = new StringBuilder();
+		for (Parameter parameter : parameters)
+			parameterList.append(", ").append(parameter.getName());
+
+		if (parameterList.length() > 2)
+			parameterList.delete(0, 2);
+
+		StringBuilder body = new StringBuilder();
+		// insert parameter checks
+		body.append(verifyParameters(parameters));
 
 		// insert hooked pre execution code
-		body.append(preExecutionCode);
-
-		// create parameter string
-		final StringBuilder parameters = new StringBuilder();
-		for(int i = 0; i < method.getParameterTypes().length; i++) {
-			parameters.append(", ");
-			parameters.append((char)('a' + i));
-		}
-		if(parameters.length() > 0)
-			parameters.replace(0, 2, "");
+		body.append(getPreExecutionCode(environment, method));
 
 		// insert method call
-		body.append("\t$");
-		body.append(resultName);
-		body.append(" = $");
-		body.append(moduleVariable);
-		body.append(".");
-		body.append(method.getName());
-		body.append("(");
-		body.append(parameters);
+		body.append("\t").append(IScriptFunctionModifier.RESULT_NAME).append(" = ").append(moduleVariable).append(".").append(method.getName()).append("(");
+		body.append(parameterList);
 		body.append(");\n");
 
 		// insert hooked post execution code
-		body.append(postExecutionCode);
+		body.append(getPostExecutionCode(environment, method));
 
 		// insert return statement
-		body.append("\treturn $");
-		body.append(resultName);
-		body.append(";\n");
+		body.append("\treturn ").append(IScriptFunctionModifier.RESULT_NAME).append(";\n");
 
-		for(String name : functionNames) {
-			if(!name.isEmpty()) {
-				rubyScriptCode.append("def ");
-				rubyScriptCode.append(name);
-				rubyScriptCode.append("(");
-				rubyScriptCode.append(parameters);
-				rubyScriptCode.append(")\n");
+		// build function declarations
+		for (String name : getMethodNames(method)) {
+			if (!isValidMethodName(name)) {
+				Logger.logError("The method name \"" + name + "\" from the module \"" + moduleVariable + "\" can not be wrapped because it's name is reserved",
+						Activator.PLUGIN_ID);
+
+			} else if (!name.isEmpty()) {
+				rubyScriptCode.append("def ").append(name).append("(").append(parameterList).append(")\n");
 				rubyScriptCode.append(body);
 				rubyScriptCode.append("end\n");
 			}
@@ -81,19 +86,12 @@ public class JRubyModuleWrapper implements IModuleWrapper {
 		return rubyScriptCode.toString();
 	}
 
-	@Override
-	public String getConstantDefinition(final String name, final Field field) {
-		return name.substring(0, 1).toUpperCase() + name.substring(1) + " = " + field.getClass().getName() + "." + field.getName();
-	}
+	private StringBuilder verifyParameters(final List<Parameter> parameters) {
+		StringBuilder data = new StringBuilder();
 
-	@Override
-	public String getEnvironmentModuleName() {
-		return "$" + EnvironmentModule.getRegisteredModuleName(EnvironmentModule.ENVIRONMENT_MODULE_NAME);
-	}
+		// FIXME currently not supported
 
-	@Override
-	public String getVariableDefinition(final String name, final String content) {
-		return "$" + name + " = " + content;
+		return data;
 	}
 
 	@Override
@@ -102,14 +100,14 @@ public class JRubyModuleWrapper implements IModuleWrapper {
 		code.append(clazz.getName());
 		code.append(".new(");
 
-		if(parameters != null) {
-			for(String parameter : parameters) {
+		if (parameters != null) {
+			for (String parameter : parameters) {
 				code.append('"');
 				code.append(parameter);
 				code.append('"');
 				code.append(", ");
 			}
-			if(parameters.length > 0)
+			if (parameters.length > 0)
 				code.replace(code.length() - 2, code.length(), "");
 		}
 
@@ -118,31 +116,53 @@ public class JRubyModuleWrapper implements IModuleWrapper {
 		return code.toString();
 	}
 
-	private static String getSaveName(final String identifier) {
+	private static boolean isValidMethodName(final String methodName) {
+		return isSaveName(methodName) && !RESERVED_KEYWORDS.contains(methodName);
+	}
+
+	private static boolean isSaveName(final String identifier) {
+		return Pattern.matches("[a-zA-Z_$][a-zA-Z0-9_$]*", identifier);
+	}
+
+	public static String getSaveName(final String identifier) {
 		// check if name is already valid
-		if(Pattern.matches("[a-zA-Z_$][a-zA-Z0-9_$]*", identifier))
+		if (isSaveName(identifier))
 			return identifier;
 
 		// not valid, convert string to valid format
 		final StringBuilder buffer = new StringBuilder(identifier.replaceAll("[^a-zA-Z0-9]", "_"));
 
 		// remove '_' at the beginning
-		while((buffer.length() > 0) && (buffer.charAt(0) == '_'))
+		while ((buffer.length() > 0) && (buffer.charAt(0) == '_'))
 			buffer.deleteCharAt(0);
 
 		// remove trailing '_'
-		while((buffer.length() > 0) && (buffer.charAt(buffer.length() - 1) == '_'))
+		while ((buffer.length() > 0) && (buffer.charAt(buffer.length() - 1) == '_'))
 			buffer.deleteCharAt(buffer.length() - 1);
 
 		// check for valid first character
-		if(buffer.length() > 0) {
+		if (buffer.length() > 0) {
 			final char start = buffer.charAt(0);
-			if((start < 65) || ((start > 90) && (start < 97)) || (start > 122))
+			if ((start < 65) || ((start > 90) && (start < 97)) || (start > 122))
 				buffer.insert(0, '_');
 		} else
 			// buffer is empty
 			buffer.insert(0, '_');
 
 		return buffer.toString();
+	}
+
+	@Override
+	public String createStaticFieldWrapper(final IEnvironment environment, final Field field) {
+		StringBuilder rubyCode = new StringBuilder();
+		rubyCode.append(getSaveVariableName(field.getName())).append(" = ");
+		rubyCode.append(field.getDeclaringClass().getName()).append(".").append(field.getName());
+
+		return rubyCode.toString();
+	}
+
+	@Override
+	protected String getNullString() {
+		return "nil";
 	}
 }

@@ -1,35 +1,20 @@
-module Krypt::Provider
+require_relative 'provider/provider'
 
-  PROVIDERS = {}
-  PROVIDER_LIST = []
+##
+# If JRuby is configured with native API access disabled, requiring the FFI
+# provider will result in a LoadError. The FFI provider is not required at
+# runtime as there is always a default (Java-based) provider.
+#
 
-  class AlreadyExistsError < Krypt::Error; end
+def java?
+  !! (RUBY_PLATFORM =~ /java/)
+end
 
-  class ServiceNotAvailableError < Krypt::Error; end
+def native_disabled?
+  require 'jruby'
+  !JRuby.runtime.instance_config.native_enabled
+end
 
-  module_function
-
-    def register(name, provider)
-      raise AlreadyExistsError.new("There already is a Provider named #{name}") if PROVIDERS.has_key?(name)
-      PROVIDERS[name] = provider
-      PROVIDER_LIST << name
-    end
-
-    def by_name(name)
-      PROVIDERS[name]
-    end
-
-    def remove(name)
-      PROVIDERS.delete(name)
-      PROVIDER_LIST.delete(name)
-    end
-
-    def new_service(klass, *args)
-      PROVIDER_LIST.reverse.each do |name| 
-        service = PROVIDERS[name].new_service(klass, *args)
-        return service if service
-      end
-      raise ServiceNotAvailableError.new("The requested service is not available")
-    end
-
+unless java?
+  require_relative 'provider/ffi'
 end

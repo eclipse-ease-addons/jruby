@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/org.eclipse.ease.lang.ruby.feature_0.1.0.qualifier.jar" id="org.eclipse.ease.lang.ruby.feature" version="0.1.0.qualifier">
+      <category name="Ruby"/>
+   </feature>
+   <category-def name="Ruby" label="Ruby Support"/>
+</site>

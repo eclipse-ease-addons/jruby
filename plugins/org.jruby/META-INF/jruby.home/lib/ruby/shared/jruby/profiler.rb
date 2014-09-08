@@ -3,13 +3,17 @@ require 'java'
 
 module JRuby
   module Profiler
-    java_import org.jruby.runtime.profile.ProfilePrinter
-    java_import org.jruby.runtime.profile.FlatProfilePrinter
-    java_import org.jruby.runtime.profile.GraphProfilePrinter
-    java_import org.jruby.runtime.profile.HtmlProfilePrinter
-    java_import org.jruby.runtime.profile.JsonProfilePrinter
+    java_import org.jruby.runtime.profile.builtin.ProfilePrinter
+    java_import org.jruby.runtime.profile.builtin.FlatProfilePrinter
+    java_import org.jruby.runtime.profile.builtin.GraphProfilePrinter
+    java_import org.jruby.runtime.profile.builtin.HtmlProfilePrinter
+    java_import org.jruby.runtime.profile.builtin.JsonProfilePrinter
     
     def self.profile(&block)
+      unless runtime.instance_config.is_profiling
+        raise RuntimeError.new "Profiling not enabled in runtime"
+      end
+
       start
       profiled_code(&block)
       stop
@@ -36,7 +40,7 @@ module JRuby
       end
 
       def self.profile_data
-        current_thread_context.profile_data
+        current_thread_context.profile_collection
       end
     
     private

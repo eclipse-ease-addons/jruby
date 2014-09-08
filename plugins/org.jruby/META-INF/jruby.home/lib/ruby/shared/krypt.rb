@@ -37,13 +37,13 @@ end
 require_relative 'krypt_missing'
 require_relative 'krypt/provider'
 require_relative 'krypt/digest'
-require_relative 'krypt/hmac'
-require_relative 'krypt/pkcs5'
 
-require 'krypt-core'
+require 'krypt/core'
 
 # The following files depend on krypt-core being loaded
 require_relative 'krypt/asn1'
 require_relative 'krypt/x509'
 require_relative 'krypt/codec'
+require_relative 'krypt/pkcs5'
+require_relative 'krypt/hmac'
 

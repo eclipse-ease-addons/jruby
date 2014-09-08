@@ -1,0 +1,14 @@
+..
+.
+charset.rb
+codegen
+codegen.rb
+datatypes.rb
+datatypes1999.rb
+iconvcharset.rb
+mapping.rb
+namedelements.rb
+ns.rb
+qname.rb
+xmlparser
+xmlparser.rb

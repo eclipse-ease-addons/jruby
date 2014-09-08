@@ -145,6 +145,15 @@ module JRuby::Compiler
       end
     end
 
+    def add_field(signature)
+      if signature.kind_of? String
+        current_class.new_field(signature, @annotations)
+        @annotations = []
+      else
+        raise "java_field must take a literal string"
+      end
+    end
+
     def build_args_signature(params)
       sig = ["Object"]
       param_strings = params.child_nodes.map do |param|
@@ -252,6 +261,8 @@ module JRuby::Compiler
         add_requires(*node.args_node.child_nodes)
       when "java_package"
         set_package(*node.args_node.child_nodes)
+      when "java_field"
+        add_field(node.args_node.child_nodes[0].value)
       end
     end
 
@@ -274,7 +285,7 @@ module JRuby::Compiler
       # ignore other nodes
     end
   end
-  
+
   class RubyScript
     BASE_IMPORTS = [
       "org.jruby.Ruby",
@@ -323,6 +334,7 @@ module JRuby::Compiler
       @name = name
       @imports = imports
       @script_name = script_name
+      @fields = []
       @methods = []
       @annotations = annotations
       @interfaces = []
@@ -331,14 +343,19 @@ module JRuby::Compiler
       @has_constructor = false;
     end
 
-    attr_accessor :methods, :name, :script_name, :annotations, :interfaces, :requires, :package, :sourcefile
+    attr_accessor :methods, :name, :script_name, :fields, :annotations, :interfaces, :requires, :package, :sourcefile
 
     def constructor?
       @has_constructor
     end
 
+    def new_field(java_signature, annotations = [])
+      fields << [java_signature, annotations]
+    end
+
     def new_method(name, java_signature = nil, annotations = [])
-      is_constructor = name == "initialize"
+      is_constructor = name == "initialize" ||
+          java_signature.is_a?(Java::OrgJrubyAstJava_signature::ConstructorSignatureNode)
       @has_constructor ||= is_constructor
 
       if is_constructor
@@ -368,8 +385,8 @@ module JRuby::Compiler
     static {
 #{requires_string}
         RubyClass metaclass = __ruby__.getClass(\"#{name}\");
-        metaclass.setRubyStaticAllocator(#{name}.class);
         if (metaclass == null) throw new NoClassDefFoundError(\"Could not load Ruby class: #{name}\");
+        metaclass.setRubyStaticAllocator(#{name}.class);
         __metaclass__ = metaclass;
     }
 JAVA
@@ -398,7 +415,7 @@ JAVA
         "        String source = new StringBuilder(\"#{source_line}\").toString();\n        __ruby__.executeScript(source, \"#{script_name}\");"
       else
         requires.map do |r|
-          "        __ruby__.getLoadService().lockAndRequire(\"#{r}\");"
+          "        __ruby__.getLoadService().require(\"#{r}\");"
         end.join("\n")
       end
     end
@@ -438,7 +455,7 @@ JAVA
 
       unless @has_constructor
         str << <<JAVA
-        
+
     /**
      * Default constructor. Invokes this(Ruby, RubyClass) with the classloader-static
      * Ruby and RubyClass instances assocated with this class, and then invokes the
@@ -467,6 +484,7 @@ public class #{name} extends RubyObject #{interface_string} {
 
 #{static_init}
 #{constructor_string}
+#{fields_string}
 #{methods_string}
 }
 JAVA
@@ -478,6 +496,17 @@ JAVA
       @imports.map do |import|
         "import #{import};"
       end.join("\n")
+    end
+
+    def fields_string
+      @fields.map do |field|
+        signature = field[0]
+        annotations = field[1]
+        annotations_string = annotations.map do |a|
+          "@" + a
+        end.join("\n")
+        "    #{annotations_string}\n    #{signature};\n"
+      end.join("\n\n")
     end
   end
 
@@ -529,7 +558,7 @@ JAVA
 
     def conversion_string(var_names)
       if arity <= MAX_UNBOXED_ARITY_LENGTH
-        var_names.map { |a| "        IRubyObject ruby_#{a} = JavaUtil.convertJavaToRuby(__ruby__, #{a});"}.join("\n")
+        var_names.map { |a| "        IRubyObject ruby_arg_#{a} = JavaUtil.convertJavaToRuby(__ruby__, #{a});"}.join("\n")
       else
         str =  "        IRubyObject ruby_args[] = new IRubyObject[#{arity}];\n"
         var_names.each_with_index { |a, i| str += "        ruby_args[#{i}] = JavaUtil.convertJavaToRuby(__ruby__, #{a});\n" }
@@ -559,7 +588,7 @@ JAVA
       end
 
       annotations = java_signature.modifiers.select(&:annotation?).map(&:to_s).join(" ")
-      
+
       "#{annotations}#{visibility_str}#{static_str}#{final_str}#{abstract_str}#{strictfp_str}#{native_str}#{synchronized_str}"
     end
 
@@ -600,7 +629,7 @@ JAVA
       return @passed_args if @passed_args
 
       if arity <= MAX_UNBOXED_ARITY_LENGTH
-        @passed_args = var_names.map {|a| "ruby_#{a}"}.join(', ')
+        @passed_args = var_names.map {|a| "ruby_arg_#{a}"}.join(', ')
         @passed_args = ', ' + @passed_args if args.size > 0
       else
         @passed_args = ", ruby_args";
