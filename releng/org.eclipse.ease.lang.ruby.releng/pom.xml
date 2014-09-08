@@ -95,6 +95,7 @@
 		<!-- modules -->
 		<module>../../plugins/org.eclipse.ease.lang.ruby</module>
 		<module>../../plugins/org.eclipse.ease.lang.ruby.jruby</module>
+		<module>../../plugins/org.jruby</module>
 
 		<!-- features -->
 		<module>../../features/org.eclipse.ease.lang.ruby.feature</module>
