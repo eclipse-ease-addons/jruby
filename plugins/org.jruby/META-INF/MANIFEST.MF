@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JRuby Binaries
 Bundle-SymbolicName: org.jruby
-Bundle-Version: 1.7.15
+Bundle-Version: 1.7.15.qualifier
 Bundle-ClassPath: .
 Bundle-Vendor: jruby.org
 Eclipse-BuddyPolicy: global
