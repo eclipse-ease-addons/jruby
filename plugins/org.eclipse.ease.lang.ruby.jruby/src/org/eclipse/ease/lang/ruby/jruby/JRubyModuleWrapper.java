@@ -153,10 +153,10 @@ public class JRubyModuleWrapper extends AbstractModuleWrapper {
 	}
 
 	@Override
-	public String createStaticFieldWrapper(final IEnvironment environment, final Field field) {
+	public String createStaticFieldWrapper(final IEnvironment environment, final String moduleVariable, final Field field) {
 		StringBuilder rubyCode = new StringBuilder();
 		rubyCode.append(getSaveVariableName(field.getName())).append(" = ");
-		rubyCode.append(field.getDeclaringClass().getName()).append(".").append(field.getName());
+		rubyCode.append(moduleVariable).append(".").append(field.getName());
 
 		return rubyCode.toString();
 	}
