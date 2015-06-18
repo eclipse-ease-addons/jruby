@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/org.eclipse.ease.lang.ruby.feature_0.2.0.qualifier.jar" id="org.eclipse.ease.lang.ruby.feature" version="0.2.0.qualifier">
+   <feature url="features/org.eclipse.ease.lang.ruby.feature_0.3.0.qualifier.jar" id="org.eclipse.ease.lang.ruby.feature" version="0.3.0.qualifier">
       <category name="Ruby"/>
    </feature>
    <category-def name="Ruby" label="Ruby Support"/>
