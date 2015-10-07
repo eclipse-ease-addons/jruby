@@ -10,9 +10,9 @@
  *******************************************************************************/
 package org.eclipse.ease.lang.ruby;
 
-import org.eclipse.ease.AbstractHeaderParser;
+import org.eclipse.ease.AbstractCodeParser;
 
-public class RubyHeaderParser extends AbstractHeaderParser {
+public class RubyCodeParser extends AbstractCodeParser {
 
 	private static final String LINE_COMMENT = "#";
 	private static final String BLOCK_COMMENT_START = "=begin";

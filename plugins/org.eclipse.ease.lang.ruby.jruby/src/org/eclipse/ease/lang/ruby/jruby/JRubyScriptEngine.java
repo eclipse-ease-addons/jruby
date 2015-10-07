@@ -15,6 +15,7 @@ import java.util.Map;
 
 import org.eclipse.ease.AbstractScriptEngine;
 import org.eclipse.ease.Script;
+import org.eclipse.ease.lang.ruby.RubyHelper;
 import org.jruby.embed.LocalVariableBehavior;
 import org.jruby.embed.ScriptingContainer;
 
@@ -59,7 +60,7 @@ public class JRubyScriptEngine extends AbstractScriptEngine {
 
 	@Override
 	public String getSaveVariableName(final String name) {
-		return JRubyModuleWrapper.getSaveName(name);
+		return RubyHelper.getSaveName(name);
 	}
 
 	@Override
