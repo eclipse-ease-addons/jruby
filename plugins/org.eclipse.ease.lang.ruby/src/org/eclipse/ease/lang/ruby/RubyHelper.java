@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 public class RubyHelper {
 
 	public static boolean isSaveName(final String identifier) {
-		return Pattern.matches("[a-zA-Z_$][a-zA-Z0-9_$]*", identifier);
+		return Pattern.matches("[a-zA-Z_$][a-zA-Z0-9_]*", identifier);
 	}
 
 	public static String getSaveName(final String identifier) {

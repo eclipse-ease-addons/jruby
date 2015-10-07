@@ -70,7 +70,7 @@ public class JRubyScriptEngine extends AbstractScriptEngine {
 
 	@Override
 	protected Object internalGetVariable(final String name) {
-		return fEngine.get(name);
+		return fEngine.get("$" + name);
 	}
 
 	@Override
@@ -80,12 +80,12 @@ public class JRubyScriptEngine extends AbstractScriptEngine {
 
 	@Override
 	protected boolean internalHasVariable(final String name) {
-		return internalGetVariables().containsKey(name);
+		return internalGetVariables().containsKey("$" + name);
 	}
 
 	@Override
 	protected void internalSetVariable(final String name, final Object content) {
-		fEngine.put(name, content);
+		fEngine.put("$" + name, content);
 	}
 
 	@Override

@@ -15,6 +15,7 @@
    <extension
          point="org.eclipse.ease.scriptType">
       <scriptType
+            codeFactory="org.eclipse.ease.lang.ruby.RubyCodeFactory"
             codeParser="org.eclipse.ease.lang.ruby.RubyCodeParser"
             defaultExtension="rb"
             headerParser="org.eclipse.ease.lang.ruby.RubyHeaderParser"

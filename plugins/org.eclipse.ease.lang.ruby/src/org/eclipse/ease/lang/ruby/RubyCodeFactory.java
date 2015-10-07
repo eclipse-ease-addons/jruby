@@ -59,7 +59,8 @@ public class RubyCodeFactory extends AbstractCodeFactory {
 		body.append(getPreExecutionCode(environment, method));
 
 		// insert method call
-		body.append("\t").append(IScriptFunctionModifier.RESULT_NAME).append(" = ").append(moduleVariable).append(".").append(method.getName()).append("(");
+		body.append("\t").append(IScriptFunctionModifier.RESULT_NAME).append(" = ").append('$').append(moduleVariable).append('.').append(method.getName())
+				.append('(');
 		body.append(parameterList);
 		body.append(");\n");
 
@@ -123,7 +124,7 @@ public class RubyCodeFactory extends AbstractCodeFactory {
 	public String createStaticFieldWrapper(final IEnvironment environment, final String moduleVariable, final Field field) {
 		StringBuilder rubyCode = new StringBuilder();
 		rubyCode.append(getSaveVariableName(field.getName())).append(" = ");
-		rubyCode.append(moduleVariable).append(".").append(field.getName());
+		rubyCode.append("$").append(moduleVariable).append(".").append(field.getName());
 
 		return rubyCode.toString();
 	}
