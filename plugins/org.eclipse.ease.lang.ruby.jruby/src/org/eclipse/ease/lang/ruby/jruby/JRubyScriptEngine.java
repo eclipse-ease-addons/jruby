@@ -15,6 +15,7 @@ import java.util.Map;
 
 import org.eclipse.ease.AbstractScriptEngine;
 import org.eclipse.ease.Script;
+import org.eclipse.ease.ScriptEngineException;
 import org.eclipse.ease.lang.ruby.RubyHelper;
 import org.jruby.embed.LocalVariableBehavior;
 import org.jruby.embed.ScriptingContainer;
@@ -38,19 +39,16 @@ public class JRubyScriptEngine extends AbstractScriptEngine {
 	}
 
 	@Override
-	protected boolean setupEngine() {
+	protected void setupEngine() throws ScriptEngineException {
 		fEngine = new ScriptingContainer(LocalVariableBehavior.PERSISTENT);
 
 		fEngine.setOutput(getOutputStream());
 		fEngine.setError(getErrorStream());
 		fEngine.setInput(getInputStream());
-
-		return true;
 	}
 
 	@Override
-	protected boolean teardownEngine() {
-		return true;
+	protected void teardownEngine() throws ScriptEngineException {
 	}
 
 	@Override
