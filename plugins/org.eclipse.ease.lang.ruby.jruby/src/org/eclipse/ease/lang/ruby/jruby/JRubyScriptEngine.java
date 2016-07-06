@@ -38,19 +38,16 @@ public class JRubyScriptEngine extends AbstractScriptEngine {
 	}
 
 	@Override
-	protected boolean setupEngine() {
+	protected void setupEngine() {
 		fEngine = new ScriptingContainer(LocalVariableBehavior.PERSISTENT);
 
 		fEngine.setOutput(getOutputStream());
 		fEngine.setError(getErrorStream());
 		fEngine.setInput(getInputStream());
-
-		return true;
 	}
 
 	@Override
-	protected boolean teardownEngine() {
-		return true;
+	protected void teardownEngine() {
 	}
 
 	@Override
